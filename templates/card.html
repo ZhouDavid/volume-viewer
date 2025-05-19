@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Clickable File Cards</title>
+    <style>
+        .file-card-btn {
+            all: unset;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            border: 1.5px solid #bbb;
+            border-radius: 16px;
+            padding: 20px;
+            background: #f7f7f8;
+            width: 350px;
+            box-shadow: 0 8px 32px #0001;
+            transition: all 0.2s ease;
+            margin: 40px 0;
+        }
+        .file-card-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 36px #0002;
+        }
+        .file-card-btn img {
+            width: 60px;
+            height: 60px;
+            margin-right: 16px;
+        }
+        .file-card-btn .meta {
+            display: flex;
+            flex-direction: column;
+        }
+        .file-card-btn .meta .title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #222;
+        }
+        .file-card-btn .meta .date {
+            color: #888;
+            font-size: 0.95rem;
+        }
+        .flash {
+            color: #222;
+            background: #e0ffe0;
+            border-radius: 8px;
+            padding: 10px 20px;
+            margin: 20px auto;
+            width: fit-content;
+            font-size: 1.1rem;
+        }
+        .cards-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="flash">{{ messages[0] }}</div>
+      {% endif %}
+    {% endwith %}
+    <div class="cards-container">
+        {% for card in cards %}
+        <form method="post">
+            <button type="submit" name="card" value="{{ card.id }}" class="file-card-btn">
+                <img src="https://img.icons8.com/ios-filled/50/888888/file.png" alt="file icon"/>
+                <div class="meta">
+                    <div class="title">{{ card.title }}</div>
+                    <div class="date">{{ card.date }}</div>
+                </div>
+            </button>
+        </form>
+        {% endfor %}
+    </div>
+</body>
+</html>
