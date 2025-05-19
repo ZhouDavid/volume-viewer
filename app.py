@@ -8,16 +8,25 @@ app = Flask(__name__)
 def index():
     def_catalog = "jianyu_catalog"
     def_schema = "default"
+    root_path = "/"
 
-    # Get current selections or use defaults
     selected_catalog = request.form.get('catalog', def_catalog)
     selected_schema = request.form.get('schema', def_schema)
     selected_volume = request.form.get('volume')
     selected_file = request.form.get('file')
+    current_path = request.form.get('current_path', root_path)
 
-    print("selected_catalog:", selected_catalog)
-    print("selected_schema:", selected_schema)
-    print("selected_volume:", selected_volume)
+    # Handle folder navigation
+    go_up = request.form.get('go_up')
+    if go_up == "1":
+        # Go up one level
+        if current_path != root_path:
+            current_path = '/'.join(current_path.rstrip('/').split('/')[:-1]) or root_path
+
+    # If a folder is clicked, update the path
+    clicked_folder = request.form.get('clicked_folder')
+    if clicked_folder:
+        current_path = clicked_folder
 
     # Populate dropdowns
     catalogs = list_catalogs()
@@ -29,10 +38,10 @@ def index():
     if not selected_volume and volume_names:
         selected_volume = volume_names[0]
 
-    # List files if all three are selected
+    # List files in the current path
     file_cards = []
     if selected_catalog and selected_schema and selected_volume:
-        file_cards = list_files_in_volume(selected_catalog, selected_schema, selected_volume, "/")
+        file_cards = list_files_in_volume(selected_catalog, selected_schema, selected_volume, current_path)
 
     # File preview
     file_content = None
@@ -53,8 +62,6 @@ def index():
         else:
             file_type = "error"
 
-    print("file_cards:", file_cards)
-
     return render_template(
         'index.html',
         catalogs=catalogs,
@@ -66,7 +73,9 @@ def index():
         file_cards=file_cards,
         selected_file=selected_file,
         file_type=file_type,
-        file_content=file_content
+        file_content=file_content,
+        current_path=current_path,
+        root_path=root_path
     )
 
 @app.template_filter('b64encode')

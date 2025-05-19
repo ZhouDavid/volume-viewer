@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>UC volume viewer</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/slim-select@2.8.0/dist/slimselect.min.css" rel="stylesheet">
     <style>
         /* Paste your custom CSS from Streamlit here */
         .uc-header {
@@ -48,17 +50,20 @@
             gap: 32px;
         }
         .left-col {
-            flex: 1.25;
+            flex: none;
+            width: 500px;
+            min-width: 250px;
+            max-width: 500px;
         }
         .right-col {
             flex: 2;
         }
         .cards-container {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: 1fr 1fr;
             gap: 24px;
-            margin-top: 16px;
-            justify-items: center;
+            margin-top: 8px;
+            justify-items: stretch;
         }
         .file-card-btn {
             all: unset;
@@ -67,27 +72,28 @@
             flex-direction: row;
             align-items: center;
             background: #fff;
-            border: 2px solid #e3e6ea;
-            border-radius: 16px;
-            box-shadow: 0 2px 12px #0001;
-            padding: 24px 24px 20px 24px;
-            min-width: 260px;
-            max-width: 320px;
-            min-height: 80px;
+            border: 1.2px solid #e3e6ea;
+            border-radius: 10px;
+            box-shadow: 0 1px 4px #0001;
+            padding: 8px 8px 6px 8px;
+            min-width: 0;
+            width: fit-content;
+            width: 100%;
+            min-height: 36px;
             transition: box-shadow 0.2s, border 0.2s, transform 0.1s;
         }
         .file-card-btn:hover {
-            box-shadow: 0 6px 24px #0002;
-            border: 2px solid #0072ff;
-            transform: translateY(-2px);
+            box-shadow: 0 2px 8px #0002;
+            border: 1.2px solid #0072ff;
+            transform: translateY(-1px);
         }
         .file-card-btn.selected {
-            border: 2.5px solid #0072ff;
+            border: 1.8px solid #0072ff;
         }
         .file-card-btn img {
-            width: 40px;
-            height: 40px;
-            margin-right: 18px;
+            width: 16px;
+            height: 16px;
+            margin-right: 6px;
         }
         .file-card-btn .meta {
             display: flex;
@@ -96,112 +102,226 @@
         }
         .file-card-btn .meta .title {
             font-weight: 700;
-            font-size: 1.08rem;
+            font-size: 0.92rem;
             color: #222;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 220px;
         }
         .file-card-btn .meta .date {
             color: #888;
-            font-size: 0.97rem;
+            font-size: 0.82rem;
             font-weight: 400;
+        }
+        .selector-row {
+            display: flex;
+            gap: 16px;
+            margin: 24px 0 24px 0;
+            align-items: center;
+        }
+        .selector-label {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 0;
+            color: #222;
+            margin-right: 6px;
+        }
+        .selector-input-card {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            border: 1.2px solid #e3e6ea;
+            border-radius: 7px;
+            box-shadow: 0 1px 4px #0001;
+            padding: 3px 10px 3px 7px;
+            min-width: 200px;
+            max-width: 270px;
+            height: 32px;
+            transition: box-shadow 0.2s, border 0.2s;
+        }
+        .selector-input-card img {
+            width: 16px;
+            height: 16px;
+            margin-right: 6px;
+            opacity: 0.7;
+        }
+        .selector-input-card select {
+            border: none;
+            background: transparent;
+            font-size: 0.98rem;
+            color: #222;
+            font-weight: 500;
+            outline: none;
+            width: 100%;
+            padding: 1px 0;
+        }
+        .selector-input-card select:focus {
+            outline: none;
+            background: #f0f6ff;
+        }
+        .app-container {
+            max-width: 1100px;
+            margin: 32px auto 32px auto;
+            padding: 0 32px;
+            background: #fff;
+            border-radius: 18px;
+            /* No border, no box-shadow */
+        }
+        .choices__list--dropdown {
+            max-height: 180px;
+            overflow-y: auto;
+        }
+        .ss-main {
+            min-width: 200px;
+            max-width: 270px;
         }
     </style>
 </head>
 <body>
-    <div class="uc-header">
-        <img src="https://databricks.com/wp-content/uploads/2019/12/db-nav-logo.png">
-        <span class="uc-title">UC volume viewer</span>
-    </div>
-    <div class="uc-subtitle">This app allows you to view, upload, and download files from a Databricks volume</div>
-    <hr style="margin: 32px 0 24px 0; border: none; border-top: 1px solid #eee;">
-    <form method="post">
-        <div class="main-layout">
-            <div class="left-col">
-                <div class="selectors">
-                    <label>Catalog:
-                        <select name="catalog" onchange="this.form.submit()">
-                            {% for c in catalogs %}
-                                <option value="{{c}}" {% if c == selected_catalog %}selected{% endif %}>{{c}}</option>
-                            {% endfor %}
-                        </select>
-                    </label>
-                    <label>Schema:
-                        <select name="schema" onchange="this.form.submit()">
-                            {% for s in schemas %}
-                                <option value="{{s}}" {% if s == selected_schema %}selected{% endif %}>{{s}}</option>
-                            {% endfor %}
-                        </select>
-                    </label>
-                    <label>Volume:
-                        <select name="volume" onchange="this.form.submit()">
-                            {% for v in volume_names %}
-                                <option value="{{v}}" {% if v == selected_volume %}selected{% endif %}>{{v}}</option>
-                            {% endfor %}
-                        </select>
-                    </label>
-                </div>
-                <div class="file-list">
-                    <label style="font-weight:600; margin-bottom:8px; display:block;">Root</label>
-                    <div class="cards-container">
-                        {% for f in file_cards %}
-                            {% set is_selected = f['path'] == selected_file %}
-                            <button type="submit" name="file" value="{{ f['path'] }}"
-                                class="file-card-btn{% if is_selected %} selected{% endif %}">
-                                {% if f['is_dir'] %}
-                                    <img src="https://img.icons8.com/ios-filled/50/90caf9/folder-invoices--v1.png" alt="folder icon"/>
-                                {% elif f['path'].lower().endswith('.pdf') %}
-                                    <img src="https://img.icons8.com/ios-filled/50/9ca3af/pdf-2.png" alt="pdf icon"/>
-                                {% elif f['path'].lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.bmp')) %}
-                                    <img src="https://img.icons8.com/ios-filled/50/9ca3af/picture.png" alt="image icon"/>
-                                {% elif f['path'].lower().endswith(('.doc', '.docx')) %}
-                                    <img src="https://img.icons8.com/ios-filled/50/9ca3af/word.png" alt="word icon"/>
-                                {% elif f['path'].lower().endswith(('.xls', '.xlsx', '.csv')) %}
-                                    <img src="https://img.icons8.com/ios-filled/50/9ca3af/ms-excel.png" alt="excel icon"/>
-                                {% else %}
-                                    <img src="https://img.icons8.com/ios-filled/50/9ca3af/document--v1.png" alt="file icon"/>
-                                {% endif %}
-                                <div class="meta">
-                                    <div class="title">
-                                        {{ f['path'].split('/')[-1] }}
-                                    </div>
-                                    <div class="date">
-                                        Modified:
-                                        {% if f['modification_time'] %}
-                                            {{ f['modification_time']|strftime('%b %d, %Y') if f['modification_time'] is number else f['modification_time'] }}
-                                        {% else %}
-                                            N/A
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </button>
+    <div class="app-container">
+        <div class="uc-header">
+            <img src="https://databricks.com/wp-content/uploads/2019/12/db-nav-logo.png">
+            <span class="uc-title">UC volume viewer</span>
+        </div>
+        <div class="uc-subtitle">This app allows you to view, upload, and download files from a Databricks volume</div>
+        <hr style="margin: 32px 0 24px 0; border: none; border-top: 1px solid #eee;">
+        <form method="post">
+            <input type="hidden" name="current_path" value="{{ current_path }}">
+            <!-- Selector Inputs (Full Width, Modern Style) -->
+            <div class="selector-row">
+                <div class="selector-input-card">
+                    <img src="https://img.icons8.com/ios-filled/50/9ca3af/database.png" alt="catalog icon"/>
+                    <span class="selector-label">catalog</span>
+                    <select id="catalog" name="catalog" onchange="this.form.submit()">
+                        {% for c in catalogs %}
+                            <option value="{{c}}" {% if c == selected_catalog %}selected{% endif %}>{{c}}</option>
                         {% endfor %}
+                    </select>
+                </div>
+                <div class="selector-input-card">
+                    <img src="https://img.icons8.com/ios-filled/50/9ca3af/stack.png" alt="schema icon"/>
+                    <span class="selector-label">schema</span>
+                    <select id="schema" name="schema" onchange="this.form.submit()">
+                        {% for s in schemas %}
+                            <option value="{{s}}" {% if s == selected_schema %}selected{% endif %}>{{s}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="selector-input-card">
+                    <img src="https://img.icons8.com/ios-filled/50/9ca3af/folder-invoices--v1.png" alt="volume icon"/>
+                    <span class="selector-label">volume</span>
+                    <select id="volume" name="volume" onchange="this.form.submit()">
+                        {% for v in volume_names %}
+                            <option value="{{v}}" {% if v == selected_volume %}selected{% endif %}>{{v}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <!-- Main Layout: File Cards and Preview Side by Side -->
+            <div class="main-layout">
+                <div class="left-col">
+                    <div class="file-list">
+                        <label style="font-weight:600; margin-bottom:8px; display:block;">
+                            {{ current_path == root_path and "Root" or current_path }}
+                        </label>
+                        <div class="cards-container">
+                            {% if current_path != root_path %}
+                                <button type="submit" name="go_up" value="1" class="file-card-btn">
+                                    <img src="https://img.icons8.com/ios-filled/50/9ca3af/circled-left-2.png" alt="back icon"/>
+                                    <div class="meta">
+                                        <div class="title">.. (Back)</div>
+                                        <div class="date">&nbsp;</div>
+                                    </div>
+                                </button>
+                            {% endif %}
+                            {% for f in file_cards %}
+                                {% set is_selected = f['path'] == selected_file %}
+                                {% if f['is_dir'] %}
+                                    <button type="submit" name="clicked_folder" value="{{ f['path'][('/Volumes/' ~ selected_catalog ~ '/' ~ selected_schema ~ '/' ~ selected_volume)|length:] or '/' }}" class="file-card-btn">
+                                        <img src="https://img.icons8.com/ios-filled/50/90caf9/folder-invoices--v1.png" alt="folder icon"/>
+                                        <div class="meta">
+                                            <div class="title">{{ f['path'].rstrip('/').split('/')[-1] }}</div>
+                                            <div class="date">Modified: {% if f['modification_time'] %}{{ f['modification_time']|strftime('%b %d, %Y') if f['modification_time'] is number else f['modification_time'] }}{% else %}N/A{% endif %}</div>
+                                        </div>
+                                    </button>
+                                {% else %}
+                                    <button type="submit" name="file" value="{{ f['path'] }}" class="file-card-btn{% if is_selected %} selected{% endif %}">
+                                        {% if f['path'].lower().endswith('.pdf') %}
+                                            <img src="https://img.icons8.com/ios-filled/50/9ca3af/pdf-2.png" alt="pdf icon"/>
+                                        {% elif f['path'].lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.bmp')) %}
+                                            <img src="https://img.icons8.com/ios-filled/50/9ca3af/picture.png" alt="image icon"/>
+                                        {% elif f['path'].lower().endswith(('.doc', '.docx')) %}
+                                            <img src="https://img.icons8.com/ios-filled/50/9ca3af/word.png" alt="word icon"/>
+                                        {% elif f['path'].lower().endswith(('.xls', '.xlsx', '.csv')) %}
+                                            <img src="https://img.icons8.com/ios-filled/50/9ca3af/ms-excel.png" alt="excel icon"/>
+                                        {% else %}
+                                            <img src="https://img.icons8.com/ios-filled/50/9ca3af/document--v1.png" alt="file icon"/>
+                                        {% endif %}
+                                        <div class="meta">
+                                            <div class="title">
+                                                {{ f['path'].rstrip('/').split('/')[-1] }}
+                                            </div>
+                                            <div class="date">
+                                                Modified:
+                                                {% if f['modification_time'] %}
+                                                    {{ f['modification_time']|strftime('%b %d, %Y') if f['modification_time'] is number else f['modification_time'] }}
+                                                {% else %}
+                                                    N/A
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </button>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="right-col">
+                    <div class="file-preview">
+                        {% if selected_file %}
+                            {% set selected_card = (file_cards | selectattr('path', 'equalto', selected_file) | list | first) %}
+                            <div style="font-size: 1.15rem; font-weight: 600; margin-bottom: 10px;">
+                                {{ selected_card['path'].rstrip('/').split('/')[-1] }}
+                            </div>
+                            <div style="color: #888; font-size: 1rem; margin-bottom: 18px;">
+                                Updated at:
+                                {% if selected_card['modification_time'] %}
+                                    {{ selected_card['modification_time']|strftime('%b %d, %Y') if selected_card['modification_time'] is number else selected_card['modification_time'] }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </div>
+                            {% if file_type == 'image' %}
+                                <img src="data:image/png;base64,{{ file_content|b64encode }}" style="max-width:100%;">
+                            {% elif file_type == 'text' %}
+                                <pre>{{ file_content }}</pre>
+                            {% elif file_type == 'pdf' %}
+                                <div>PDF preview not implemented.</div>
+                            {% elif file_type == 'unsupported' %}
+                                <div>File type not supported for preview.</div>
+                            {% elif file_type == 'error' %}
+                                <div>Failed to load file content.</div>
+                            {% endif %}
+                        {% else %}
+                            <div class="uc-preview-panel">
+                                <div class="uc-preview-title">Select a file to preview</div>
+                                <div class="uc-preview-caption">Files supported: .png, .jpg, .jpeg, .gif, .bmp, .txt, .csv, .json, .xml, .pdf, .html</div>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
-            <div class="right-col">
-                <div class="file-preview">
-                    <div style="font-size: 1.25rem; font-weight: 600; margin-bottom: 18px;">File preview</div>
-                    {% if selected_file %}
-                        {% if file_type == 'image' %}
-                            <img src="data:image/png;base64,{{ file_content|b64encode }}" style="max-width:100%;">
-                        {% elif file_type == 'text' %}
-                            <pre>{{ file_content }}</pre>
-                        {% elif file_type == 'pdf' %}
-                            <div>PDF preview not implemented.</div>
-                        {% elif file_type == 'unsupported' %}
-                            <div>File type not supported for preview.</div>
-                        {% elif file_type == 'error' %}
-                            <div>Failed to load file content.</div>
-                        {% endif %}
-                    {% else %}
-                        <div class="uc-preview-panel">
-                            <div class="uc-preview-title">Select a file to preview</div>
-                            <div class="uc-preview-caption">Files supported: .png, .jpg, .jpeg, .gif, .bmp, .txt, .csv, .json, .xml, .pdf, .html</div>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </form>
+        </form>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/slim-select@2.8.0/dist/slimselect.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.selector-input-card select').forEach(function(select) {
+          new SlimSelect({ select: select });
+        });
+      });
+    </script>
 </body>
 </html>
