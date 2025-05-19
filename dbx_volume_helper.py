@@ -40,18 +40,21 @@ def list_files_in_volume(catalog_name: str, schema_name: str, volume_name: str, 
         path: The path within the volume (default is root '/')
     Returns a list of file/folder metadata dicts.
     """
+    print(f"[DEBUG] list_files_in_volume called with: catalog={catalog_name}, schema={schema_name}, volume={volume_name}, path={path}")
     files = []
     volume_path = f"/Volumes/{catalog_name}/{schema_name}/{volume_name}{path}" if path.startswith("/") else f"/Volumes/{catalog_name}/{schema_name}/{volume_name}/{path}"
     try:
         for item in dbx.files.list_directory_contents(volume_path):
+            is_dir = getattr(item, 'is_directory', False)
             files.append({
                 'path': item.path,
-                'is_dir': getattr(item, 'file_type', None) == 'DIRECTORY',
+                'is_dir': is_dir,
                 'file_size': getattr(item, 'file_size', None),
                 'modification_time': getattr(item, 'modification_time', None),
             })
     except Exception as e:
         print(f"Error listing files in {volume_path}: {e}")
+    print(f"[DEBUG] list_files_in_volume result: {files}")
     return files
 
 def upload_file_to_volume(volume_full_name: str, dest_path: str, file_bytes: bytes) -> bool:
