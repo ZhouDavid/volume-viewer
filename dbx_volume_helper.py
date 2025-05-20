@@ -6,7 +6,7 @@ from databricks.sdk import WorkspaceClient
 from typing import List, Dict, Optional
 
 # Initialize the Databricks SDK client (assumes environment variables or config file for auth)
-dbx = WorkspaceClient(host="https://e2-dogfood-cleanroom-eng-us-west-2.staging.cloud.databricks.com/", token = "")
+dbx = WorkspaceClient()
 
 def list_volumes(catalog_name: str, schema_name: str, limit: int = 20) -> List[Dict]:
     """
