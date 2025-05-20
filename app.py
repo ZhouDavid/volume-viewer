@@ -6,13 +6,14 @@ app = Flask(__name__)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    def_catalog = "jianyu_catalog"
+    def_catalog = "jianyu"
     def_schema = "default"
     root_path = "/"
 
-    selected_catalog = request.form.get('catalog', def_catalog)
-    selected_schema = request.form.get('schema', def_schema)
-    selected_volume = request.form.get('volume')
+    # Use text input if filled, otherwise dropdown value
+    selected_catalog = request.form.get('catalog_input') or request.form.get('catalog', def_catalog)
+    selected_schema = request.form.get('schema_input') or request.form.get('schema', def_schema)
+    selected_volume = request.form.get('volume_input') or request.form.get('volume')
     selected_file = request.form.get('file')
     current_path = request.form.get('current_path', root_path)
 

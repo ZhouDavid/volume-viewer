@@ -199,6 +199,7 @@
                             <option value="{{c}}" {% if c == selected_catalog %}selected{% endif %}>{{c}}</option>
                         {% endfor %}
                     </select>
+                    <input type="text" name="catalog_input" placeholder="Or type new..." value="{{ selected_catalog if selected_catalog not in catalogs else '' }}" style="margin-left:6px; width:90px; border:none; outline:none; background:transparent; font-size:0.98rem; color:#222;" autocomplete="off">
                 </div>
                 <div class="selector-input-card">
                     <img src="https://img.icons8.com/ios-filled/50/9ca3af/stack.png" alt="schema icon"/>
@@ -208,6 +209,7 @@
                             <option value="{{s}}" {% if s == selected_schema %}selected{% endif %}>{{s}}</option>
                         {% endfor %}
                     </select>
+                    <input type="text" name="schema_input" placeholder="Or type new..." value="{{ selected_schema if selected_schema not in schemas else '' }}" style="margin-left:6px; width:90px; border:none; outline:none; background:transparent; font-size:0.98rem; color:#222;" autocomplete="off">
                 </div>
                 <div class="selector-input-card">
                     <img src="https://img.icons8.com/ios-filled/50/9ca3af/folder-invoices--v1.png" alt="volume icon"/>
@@ -217,6 +219,7 @@
                             <option value="{{v}}" {% if v == selected_volume %}selected{% endif %}>{{v}}</option>
                         {% endfor %}
                     </select>
+                    <input type="text" name="volume_input" placeholder="Or type new..." value="{{ selected_volume if selected_volume not in volume_names else '' }}" style="margin-left:6px; width:90px; border:none; outline:none; background:transparent; font-size:0.98rem; color:#222;" autocomplete="off">
                 </div>
             </div>
             <!-- Main Layout: File Cards and Preview Side by Side -->
