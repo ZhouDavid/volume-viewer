@@ -1,6 +1,0 @@
-version: 1
-name: "uc-volume-helper"
-description: "A web application that helps users browse and manage files in Unity Catalog volumes, providing file preview and download capabilities"
-
-user_api_scopes:
-  - "files.files"
