@@ -5,7 +5,12 @@
     <title>UC volume viewer</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
     <link href="https://cdn.jsdelivr.net/npm/slim-select@2.8.0/dist/slimselect.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@100;300;400&display=swap" rel="stylesheet">
     <style>
+        html, body {
+            font-family: 'Nunito', 'Segoe UI', Arial, sans-serif;
+            color: #444;
+        }
         /* Paste your custom CSS from Streamlit here */
         .uc-header {
             display: flex;
@@ -20,6 +25,7 @@
             font-size: 2.5rem;
             font-weight: 700;
             margin-bottom: 0;
+            color: #3f3e3e;
         }
         .uc-subtitle {
             color: #888;
@@ -57,11 +63,13 @@
         }
         .right-col {
             flex: 2;
+            margin-left: 40px;
         }
         .cards-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 24px;
+            column-gap: 32px;
+            row-gap: 24px;
             margin-top: 8px;
             justify-items: stretch;
         }
@@ -75,11 +83,11 @@
             border: 1.2px solid #e3e6ea;
             border-radius: 10px;
             box-shadow: 0 1px 4px #0001;
-            padding: 8px 8px 6px 8px;
+            padding: 8px 12px 8px 12px;
             min-width: 0;
             width: fit-content;
             width: 100%;
-            min-height: 36px;
+            min-height: 56px;
             transition: box-shadow 0.2s, border 0.2s, transform 0.1s;
         }
         .file-card-btn:hover {
@@ -91,24 +99,28 @@
             border: 1.8px solid #0072ff;
         }
         .file-card-btn img {
-            width: 16px;
-            height: 16px;
-            margin-right: 6px;
+            width: 48px;
+            height: 48px;
+            margin-right: 16px;
         }
         .file-card-btn .meta {
             display: flex;
             flex-direction: column;
             justify-content: center;
+            min-width: 0;
+            flex: 1;
+            width: calc(100% - 64px);
         }
         .file-card-btn .meta .title {
             font-weight: 700;
             font-size: 0.92rem;
-            color: #222;
+            color: #666;
             margin-bottom: 1px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 220px;
+            max-width: calc(100% - 10px);
+            width: 100%;
         }
         .file-card-btn .meta .date {
             color: #888;
@@ -177,18 +189,169 @@
             min-width: 200px;
             max-width: 270px;
         }
+        #flash-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .flash-banner-message {
+            margin-top: 16px;
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-weight: 600;
+            color: #fff;
+            font-size: 1.1rem;
+            box-shadow: 0 2px 8px #0002;
+        }
+        .flash-banner-message.success {
+            background: #4caf50;
+        }
+        .flash-banner-message.error {
+            background: #f44336;
+        }
+        .upload-btn {
+            background: none;
+            border: none;
+            box-shadow: none;
+            padding: 4px 8px;
+            cursor: pointer;
+        }
+        .upload-btn:hover img {
+            filter: none;
+        }
+        .action-btn {
+            background: none;
+            border: none;
+            box-shadow: none;
+            padding: 4px 8px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .action-btn:hover {
+            opacity: 0.7;
+        }
+        .action-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            max-width: 90%;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+        }
+        .modal-body {
+            margin-bottom: 24px;
+        }
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        .modal-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            margin-bottom: 16px;
+        }
+        .modal-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+        }
+        .modal-btn-primary {
+            background: #0072ff;
+            color: white;
+        }
+        .modal-btn-secondary {
+            background: #f5f6fa;
+            color: #333;
+            border: 1px solid #ddd;
+        }
     </style>
 </head>
 <body>
     <div class="app-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div id="flash-banner">
+              {% for category, message in messages %}
+                <div class="flash-banner-message {{ category }}">
+                  {{ message }}
+                </div>
+              {% endfor %}
+            </div>
+            <script>
+              setTimeout(function() {
+                var flash = document.getElementById('flash-banner');
+                if (flash) flash.style.display = 'none';
+              }, 3000);
+            </script>
+          {% endif %}
+        {% endwith %}
         <div class="uc-header">
-            <img src="https://databricks.com/wp-content/uploads/2019/12/db-nav-logo.png">
+            <img src="{{ url_for('static', filename='databricks.svg') }}" style="height:36px; margin-right:16px;" alt="Databricks logo"/>
             <span class="uc-title">UC volume viewer</span>
         </div>
         <div class="uc-subtitle">This app allows you to view, upload, and download files from a Databricks volume</div>
         <hr style="margin: 32px 0 24px 0; border: none; border-top: 1px solid #eee;">
+        
+        <!-- Upload form (outside main form) -->
+        <form method="post" enctype="multipart/form-data" id="upload-form" style="display: none;">
+            <input type="file" name="upload_file" id="upload_file" onchange="this.form.submit()">
+            <input type="hidden" name="upload_path" value="{{ current_path }}">
+            <input type="hidden" name="catalog" value="{{ selected_catalog }}">
+            <input type="hidden" name="schema" value="{{ selected_schema }}">
+            <input type="hidden" name="volume" value="{{ selected_volume }}">
+        </form>
+
         <form method="post">
             <input type="hidden" name="current_path" value="{{ current_path }}">
+            <input type="hidden" name="prev_volume" value="{{ selected_volume }}">
+            <input type="hidden" name="prev_catalog" value="{{ selected_catalog }}">
             <!-- Selector Inputs (Full Width, Modern Style) -->
             <div class="selector-row">
                 <div class="selector-input-card">
@@ -199,7 +362,6 @@
                             <option value="{{c}}" {% if c == selected_catalog %}selected{% endif %}>{{c}}</option>
                         {% endfor %}
                     </select>
-                    <input type="text" name="catalog_input" placeholder="Or type new..." value="{{ selected_catalog if selected_catalog not in catalogs else '' }}" style="margin-left:6px; width:90px; border:none; outline:none; background:transparent; font-size:0.98rem; color:#222;" autocomplete="off">
                 </div>
                 <div class="selector-input-card">
                     <img src="https://img.icons8.com/ios-filled/50/9ca3af/stack.png" alt="schema icon"/>
@@ -209,7 +371,6 @@
                             <option value="{{s}}" {% if s == selected_schema %}selected{% endif %}>{{s}}</option>
                         {% endfor %}
                     </select>
-                    <input type="text" name="schema_input" placeholder="Or type new..." value="{{ selected_schema if selected_schema not in schemas else '' }}" style="margin-left:6px; width:90px; border:none; outline:none; background:transparent; font-size:0.98rem; color:#222;" autocomplete="off">
                 </div>
                 <div class="selector-input-card">
                     <img src="https://img.icons8.com/ios-filled/50/9ca3af/folder-invoices--v1.png" alt="volume icon"/>
@@ -219,61 +380,73 @@
                             <option value="{{v}}" {% if v == selected_volume %}selected{% endif %}>{{v}}</option>
                         {% endfor %}
                     </select>
-                    <input type="text" name="volume_input" placeholder="Or type new..." value="{{ selected_volume if selected_volume not in volume_names else '' }}" style="margin-left:6px; width:90px; border:none; outline:none; background:transparent; font-size:0.98rem; color:#222;" autocomplete="off">
                 </div>
             </div>
             <!-- Main Layout: File Cards and Preview Side by Side -->
             <div class="main-layout">
                 <div class="left-col">
-                    <div class="file-list">
-                        <label style="font-weight:600; margin-bottom:8px; display:block;">
-                            {{ current_path == root_path and "Root" or current_path }}
-                        </label>
+                    <div class="file-list" style="position: relative;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                            <label style="font-weight:600; margin: 0;">
+                                {{ current_path == root_path and "Root" or current_path }}
+                            </label>
+                            <div style="display: flex; gap: 8px;">
+                                <button type="button" onclick="document.getElementById('upload_file').click();" class="action-btn" title="Upload">
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                      <line x1="12" y1="19" x2="12" y2="5"/>
+                                      <polyline points="5 12 12 5 19 12"/>
+                                      <line x1="5" y1="19" x2="19" y2="19"/>
+                                    </svg>
+                                </button>
+                                <button type="button" onclick="showCreateFolderDialog()" class="action-btn" title="Create Folder">
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                      <path d="M12 5v14M5 12h14"/>
+                                    </svg>
+                                </button>
+                                <button type="button" onclick="deleteSelectedFile()" class="action-btn" title="Delete" id="delete-btn" style="display: none;">
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                      <polyline points="3 6 5 6 21 6"></polyline>
+                                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                      <line x1="10" y1="11" x2="10" y2="17"></line>
+                                      <line x1="14" y1="11" x2="14" y2="17"></line>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
                         <div class="cards-container">
                             {% if current_path != root_path %}
                                 <button type="submit" name="go_up" value="1" class="file-card-btn">
                                     <img src="https://img.icons8.com/ios-filled/50/9ca3af/circled-left-2.png" alt="back icon"/>
                                     <div class="meta">
                                         <div class="title">.. (Back)</div>
-                                        <div class="date">&nbsp;</div>
                                     </div>
                                 </button>
                             {% endif %}
                             {% for f in file_cards %}
                                 {% set is_selected = f['path'] == selected_file %}
                                 {% if f['is_dir'] %}
-                                    <button type="submit" name="clicked_folder" value="{{ f['path'][('/Volumes/' ~ selected_catalog ~ '/' ~ selected_schema ~ '/' ~ selected_volume)|length:] or '/' }}" class="file-card-btn">
+                                    <button type="button" onclick="selectFolder(this, '{{ f['path'] }}')" ondblclick="navigateToFolder('{{ f['path'][('/Volumes/' ~ selected_catalog ~ '/' ~ selected_schema ~ '/' ~ selected_volume)|length:] or '/' }}')" data-path="{{ f['path'] }}" class="file-card-btn">
                                         <img src="https://img.icons8.com/ios-filled/50/90caf9/folder-invoices--v1.png" alt="folder icon"/>
                                         <div class="meta">
                                             <div class="title">{{ f['path'].rstrip('/').split('/')[-1] }}</div>
-                                            <div class="date">Modified: {% if f['modification_time'] %}{{ f['modification_time']|strftime('%b %d, %Y') if f['modification_time'] is number else f['modification_time'] }}{% else %}N/A{% endif %}</div>
                                         </div>
                                     </button>
                                 {% else %}
-                                    <button type="submit" name="file" value="{{ f['path'] }}" class="file-card-btn{% if is_selected %} selected{% endif %}">
+                                    <button type="button" onclick="previewFile(&quot;{{ f['path'] }}&quot;, this);" data-path="{{ f['path'] }}" class="file-card-btn{% if is_selected %} selected{% endif %}">
                                         {% if f['path'].lower().endswith('.pdf') %}
-                                            <img src="https://img.icons8.com/ios-filled/50/9ca3af/pdf-2.png" alt="pdf icon"/>
+                                            <img src="https://img.icons8.com/ios-filled/50/9ca3af/pdf-2.png" alt="pdf icon" style="width: 32px; height: 32px;"/>
                                         {% elif f['path'].lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.bmp')) %}
-                                            <img src="https://img.icons8.com/ios-filled/50/9ca3af/picture.png" alt="image icon"/>
+                                            <img src="data:image/png;base64,{{ f['preview'] }}" alt="image thumbnail" style="width: 48px; height: 48px; object-fit: cover; border-radius: 6px; background: #f0f0f0;"/>
                                         {% elif f['path'].lower().endswith(('.doc', '.docx')) %}
-                                            <img src="https://img.icons8.com/ios-filled/50/9ca3af/word.png" alt="word icon"/>
+                                            <img src="https://img.icons8.com/ios-filled/50/9ca3af/word.png" alt="word icon" style="width: 32px; height: 32px;"/>
                                         {% elif f['path'].lower().endswith(('.xls', '.xlsx', '.csv')) %}
-                                            <img src="https://img.icons8.com/ios-filled/50/9ca3af/ms-excel.png" alt="excel icon"/>
+                                            <img src="https://img.icons8.com/ios-filled/50/9ca3af/ms-excel.png" alt="excel icon" style="width: 32px; height: 32px;"/>
                                         {% else %}
-                                            <img src="https://img.icons8.com/ios-filled/50/9ca3af/document--v1.png" alt="file icon"/>
+                                            <img src="https://img.icons8.com/ios-filled/50/9ca3af/document--v1.png" alt="file icon" style="width: 32px; height: 32px;"/>
                                         {% endif %}
                                         <div class="meta">
-                                            <div class="title">
-                                                {{ f['path'].rstrip('/').split('/')[-1] }}
-                                            </div>
-                                            <div class="date">
-                                                Modified:
-                                                {% if f['modification_time'] %}
-                                                    {{ f['modification_time']|strftime('%b %d, %Y') if f['modification_time'] is number else f['modification_time'] }}
-                                                {% else %}
-                                                    N/A
-                                                {% endif %}
-                                            </div>
+                                            <div class="title">{{ f['path'].rstrip('/').split('/')[-1] }}</div>
+                                            <div class="date">Modified: {% if f['modification_time'] %}{{ f['modification_time']|format_datetime }} {% else %}N/A{% endif %}</div>
                                         </div>
                                     </button>
                                 {% endif %}
@@ -282,49 +455,364 @@
                     </div>
                 </div>
                 <div class="right-col">
-                    <div class="file-preview">
-                        {% if selected_file %}
-                            {% set selected_card = (file_cards | selectattr('path', 'equalto', selected_file) | list | first) %}
-                            <div style="font-size: 1.15rem; font-weight: 600; margin-bottom: 10px;">
-                                {{ selected_card['path'].rstrip('/').split('/')[-1] }}
-                            </div>
-                            <div style="color: #888; font-size: 1rem; margin-bottom: 18px;">
-                                Updated at:
-                                {% if selected_card['modification_time'] %}
-                                    {{ selected_card['modification_time']|strftime('%b %d, %Y') if selected_card['modification_time'] is number else selected_card['modification_time'] }}
-                                {% else %}
-                                    N/A
-                                {% endif %}
-                            </div>
-                            {% if file_type == 'image' %}
-                                <img src="data:image/png;base64,{{ file_content|b64encode }}" style="max-width:100%;">
-                            {% elif file_type == 'text' %}
-                                <pre>{{ file_content }}</pre>
-                            {% elif file_type == 'pdf' %}
-                                <div>PDF preview not implemented.</div>
-                            {% elif file_type == 'unsupported' %}
-                                <div>File type not supported for preview.</div>
-                            {% elif file_type == 'error' %}
-                                <div>Failed to load file content.</div>
-                            {% endif %}
-                        {% else %}
-                            <div class="uc-preview-panel">
-                                <div class="uc-preview-title">Select a file to preview</div>
-                                <div class="uc-preview-caption">Files supported: .png, .jpg, .jpeg, .gif, .bmp, .txt, .csv, .json, .xml, .pdf, .html</div>
-                            </div>
-                        {% endif %}
+                    <div class="file-preview" id="file-preview-container">
+                        <div id="preview-filename" style="font-size: 1.15rem; font-weight: 600; margin-bottom: 10px;"></div>
+                        <div id="preview-modified" style="color: #888; font-size: 1rem; margin-bottom: 18px;"></div>
+                        <div id="preview-content"></div>
+                        <div id="preview-download" style="margin-top: 24px; text-align: right;"></div>
+                        <div id="preview-placeholder" style="color: #888; font-size: 1.1rem; text-align: center; margin-top: 100px;">
+                            Select a file to preview
+                        </div>
                     </div>
                 </div>
             </div>
         </form>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/slim-select@2.8.0/dist/slimselect.min.js"></script>
+    
+    <!-- Create Folder Modal -->
+    <div id="create-folder-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Create New Folder</h3>
+                <button type="button" class="modal-close" onclick="hideCreateFolderDialog()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="folder-name" class="modal-input" placeholder="Enter folder name" autofocus>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="modal-btn modal-btn-secondary" onclick="hideCreateFolderDialog()">Cancel</button>
+                <button type="button" class="modal-btn modal-btn-primary" onclick="createFolder()">Create</button>
+            </div>
+        </div>
+    </div>
+
     <script>
       document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.selector-input-card select').forEach(function(select) {
-          new SlimSelect({ select: select });
+          new SlimSelect({
+            select: select
+          });
+        });
+        
+        // Add click handlers to file cards
+        document.querySelectorAll('.file-card-btn[data-path]').forEach(btn => {
+          btn.addEventListener('click', function() {
+            previewFile(this.dataset.path, this);
+          });
+        });
+        
+        // Initialize file preview if there's a selected file
+        const selectedButtons = document.querySelectorAll('.file-card-btn.selected');
+        if (selectedButtons.length > 0) {
+          const selectedButton = selectedButtons[0];
+          const filePath = selectedButton.dataset.path;
+          if (filePath) {
+            previewFile(filePath, selectedButton);
+          }
+        }
+
+        // Add enter key handler for folder name input
+        document.getElementById('folder-name').addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            createFolder();
+          }
         });
       });
+      
+      function previewFile(filePath, buttonElement) {
+        // Check if it's a directory
+        if (filePath.endsWith('/')) {
+          selectFolder(buttonElement, filePath);
+          return;
+        }
+        
+        // Update selected state for all file buttons
+        document.querySelectorAll('.file-card-btn').forEach(btn => {
+          btn.classList.remove('selected');
+        });
+        buttonElement.classList.add('selected');
+        
+        // Show delete button if file is selected
+        const deleteBtn = document.getElementById('delete-btn');
+        if (deleteBtn) {
+          deleteBtn.style.display = 'block';
+        }
+        
+        // Get current parameters
+        const catalog = document.querySelector('select[name="catalog"]').value;
+        const schema = document.querySelector('select[name="schema"]').value;
+        const volume = document.querySelector('select[name="volume"]').value;
+        const currentPath = document.querySelector('input[name="current_path"]').value;
+        
+        // Show loading state
+        document.getElementById('preview-filename').textContent = '';
+        document.getElementById('preview-modified').textContent = '';
+        document.getElementById('preview-content').innerHTML = '<div style="text-align: center; margin-top: 40px;">Loading preview...</div>';
+        document.getElementById('preview-download').innerHTML = '';
+        document.getElementById('preview-placeholder').style.display = 'none';
+        
+        // Fetch file preview
+        fetch(`/api/file-preview?file=${encodeURIComponent(filePath)}&catalog=${encodeURIComponent(catalog)}&schema=${encodeURIComponent(schema)}&volume=${encodeURIComponent(volume)}&current_path=${encodeURIComponent(currentPath)}`)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then(data => {
+            // Update file preview
+            document.getElementById('preview-filename').textContent = data.filename;
+            document.getElementById('preview-modified').innerHTML = `Updated at: ${data.modification_time}`;
+            
+            let contentHtml = '';
+            if (data.file_type === 'image') {
+              contentHtml = `<img src="data:image/png;base64,${data.file_content}" style="max-width:100%;">`;  
+            } else if (data.file_type === 'text') {
+              contentHtml = `<pre>${data.file_content}</pre>`;
+            } else if (data.file_type === 'pdf') {
+              contentHtml = '<div>PDF preview not implemented.</div>';
+            } else if (data.file_type === 'unsupported') {
+              contentHtml = '<div>File type not supported for preview.</div>';
+            }
+            
+            document.getElementById('preview-content').innerHTML = contentHtml;
+            document.getElementById('preview-download').innerHTML = `
+              <a href="/download?file=${encodeURIComponent(filePath)}" style="display:inline-block; background:#f5f6fa; border:1px solid #e3e6ea; border-radius:6px; padding:6px 16px; font-weight:600; cursor:pointer; text-decoration:none; color:#333;">
+                Download
+              </a>
+            `;
+            
+            // Update URL without reloading the page
+            const url = new URL(window.location.href);
+            url.searchParams.set('file', filePath);
+            window.history.pushState({}, '', url);
+          })
+          .catch(error => {
+            console.error('Error fetching file preview:', error);
+            document.getElementById('preview-content').innerHTML = '<div style="color: red;">Error loading file preview</div>';
+          });
+      }
+
+      function selectFolder(buttonElement, folderPath) {
+        // Update selected state for all buttons
+        document.querySelectorAll('.file-card-btn').forEach(btn => {
+          btn.classList.remove('selected');
+        });
+        buttonElement.classList.add('selected');
+        
+        // Show delete button
+        const deleteBtn = document.getElementById('delete-btn');
+        if (deleteBtn) {
+          deleteBtn.style.display = 'block';
+        }
+        
+        // Show folder info in preview panel
+        const folderName = buttonElement.querySelector('.title').textContent;
+        const dateElem = buttonElement.querySelector('.date');
+        const modifiedTime = dateElem ? dateElem.textContent : '';
+        
+        document.getElementById('preview-filename').textContent = folderName;
+        document.getElementById('preview-modified').textContent = modifiedTime;
+        document.getElementById('preview-content').innerHTML = `
+          <div style="text-align: center; margin-top: 40px; color: #666;">
+            <img src="https://img.icons8.com/ios-filled/50/90caf9/folder-invoices--v1.png" alt="folder icon" style="width: 64px; height: 64px; margin-bottom: 16px;"/>
+            <div style="font-size: 1.1rem;">This is a folder</div>
+            <div style="font-size: 0.9rem; color: #888; margin-top: 8px;">Double-click to open</div>
+          </div>
+        `;
+        document.getElementById('preview-download').innerHTML = '';
+        document.getElementById('preview-placeholder').style.display = 'none';
+      }
+      
+      function navigateToFolder(folderPath) {
+        // Show loading state
+        const cardsContainer = document.querySelector('.cards-container');
+        cardsContainer.innerHTML = '<div style="text-align: center; margin: 40px 0; color: #666;">Loading...</div>';
+        
+        // Clear preview panel and show placeholder
+        document.getElementById('preview-filename').textContent = '';
+        document.getElementById('preview-modified').textContent = '';
+        document.getElementById('preview-content').innerHTML = '';
+        document.getElementById('preview-download').innerHTML = '';
+        document.getElementById('preview-placeholder').style.display = 'block';
+        
+        // Get current parameters
+        const catalog = document.querySelector('select[name="catalog"]').value;
+        const schema = document.querySelector('select[name="schema"]').value;
+        const volume = document.querySelector('select[name="volume"]').value;
+        
+        // Create form data
+        const formData = new FormData();
+        formData.append('clicked_folder', folderPath);
+        formData.append('catalog', catalog);
+        formData.append('schema', schema);
+        formData.append('volume', volume);
+        
+        // Fetch the new directory contents
+        fetch('/', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.text())
+        .then(html => {
+          // Create a temporary div to parse the HTML
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = html;
+          
+          // Extract the new cards container content
+          const newCardsContainer = tempDiv.querySelector('.cards-container');
+          if (newCardsContainer) {
+            // Update the cards container
+            cardsContainer.innerHTML = newCardsContainer.innerHTML;
+            
+            // Update the current path display
+            const pathLabel = document.querySelector('.file-list label');
+            const newPathLabel = tempDiv.querySelector('.file-list label');
+            if (pathLabel && newPathLabel) {
+              pathLabel.textContent = newPathLabel.textContent;
+            }
+            
+            // Update the current path input
+            const currentPathInput = document.querySelector('input[name="current_path"]');
+            const newCurrentPathInput = tempDiv.querySelector('input[name="current_path"]');
+            if (currentPathInput && newCurrentPathInput) {
+              currentPathInput.value = newCurrentPathInput.value;
+            }
+            
+            // Update URL without reloading
+            const url = new URL(window.location.href);
+            url.searchParams.set('current_path', newCurrentPathInput.value);
+            window.history.pushState({}, '', url);
+            
+            // Reattach event listeners to new buttons
+            document.querySelectorAll('.file-card-btn[data-path]').forEach(btn => {
+              btn.addEventListener('click', function() {
+                previewFile(this.dataset.path, this);
+              });
+            });
+          }
+        })
+        .catch(error => {
+          console.error('Error navigating to folder:', error);
+          cardsContainer.innerHTML = '<div style="text-align: center; margin: 40px 0; color: red;">Error loading folder contents</div>';
+        });
+      }
+      
+      function deleteSelectedFile() {
+        const selectedButton = document.querySelector('.file-card-btn.selected');
+        if (!selectedButton) return;
+        
+        const filePath = selectedButton.getAttribute('data-path');
+        if (!filePath) return;
+        
+        const isDirectory = selectedButton.querySelector('img[alt="folder icon"]') !== null;
+        if (!confirm(`Are you sure you want to delete this ${isDirectory ? 'folder' : 'file'}?`)) return;
+        
+        const formData = new FormData();
+        formData.append('file_path', filePath);
+        formData.append('is_directory', isDirectory);
+        
+        fetch('/delete', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.message) {
+            // Remove the file card
+            selectedButton.remove();
+            // Hide delete button
+            document.getElementById('delete-btn').style.display = 'none';
+            // Clear preview
+            document.getElementById('preview-filename').textContent = '';
+            document.getElementById('preview-modified').textContent = '';
+            document.getElementById('preview-content').innerHTML = '';
+            document.getElementById('preview-download').innerHTML = '';
+            document.getElementById('preview-placeholder').style.display = 'block';
+            // Show success message
+            const flashBanner = document.getElementById('flash-banner');
+            if (flashBanner) {
+              flashBanner.innerHTML = `
+                <div class="flash-banner-message success">
+                  ${isDirectory ? 'Folder' : 'File'} deleted successfully
+                </div>
+              `;
+              flashBanner.style.display = 'flex';
+              setTimeout(() => {
+                flashBanner.style.display = 'none';
+              }, 3000);
+            }
+          } else {
+            throw new Error(data.error || 'Failed to delete');
+          }
+        })
+        .catch(error => {
+          console.error('Error deleting:', error);
+          const flashBanner = document.getElementById('flash-banner');
+          if (flashBanner) {
+            flashBanner.innerHTML = `
+              <div class="flash-banner-message error">
+                ${error.message}
+              </div>
+            `;
+            flashBanner.style.display = 'flex';
+            setTimeout(() => {
+              flashBanner.style.display = 'none';
+            }, 3000);
+          }
+        });
+      }
+
+      function showCreateFolderDialog() {
+        document.getElementById('create-folder-modal').style.display = 'flex';
+        document.getElementById('folder-name').focus();
+      }
+      
+      function hideCreateFolderDialog() {
+        document.getElementById('create-folder-modal').style.display = 'none';
+        document.getElementById('folder-name').value = '';
+      }
+      
+      function createFolder() {
+        const folderName = document.getElementById('folder-name').value.trim();
+        if (!folderName) {
+          alert('Please enter a folder name');
+          return;
+        }
+        
+        const formData = new FormData();
+        formData.append('folder_name', folderName);
+        formData.append('catalog', document.querySelector('select[name="catalog"]').value);
+        formData.append('schema', document.querySelector('select[name="schema"]').value);
+        formData.append('volume', document.querySelector('select[name="volume"]').value);
+        formData.append('current_path', document.querySelector('input[name="current_path"]').value);
+        
+        fetch('/api/create-folder', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            hideCreateFolderDialog();
+            // Refresh the page to show the new folder
+            window.location.reload();
+          } else {
+            throw new Error(data.error || 'Failed to create folder');
+          }
+        })
+        .catch(error => {
+          console.error('Error creating folder:', error);
+          alert(error.message);
+        });
+      }
     </script>
 </body>
 </html>
