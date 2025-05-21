@@ -11,7 +11,6 @@ import time
 from simple_cache import TTLCache
 
 # Initialize the Databricks SDK client (assumes environment variables or config file for auth)
-
 dbx = WorkspaceClient()
 # In-memory caches
 _catalogs_cache = TTLCache(ttl_seconds=60)

@@ -48,14 +48,11 @@ def index():
     if go_up == "1":
         # Get the current path from the form, not from the URL
         current_path = request.form.get('current_path', root_path)
-        print(f"[NAVIGATION DEBUG] Current path from form: {current_path}")
         
         # Go up one level
         if current_path != root_path:
-            print(f"[NAVIGATION DEBUG] Current path before going up: {current_path}")
             # Remove trailing slash and split the path
             path_parts = current_path.rstrip('/').split('/')
-            print(f"[NAVIGATION DEBUG] Path parts: {path_parts}")
             if len(path_parts) > 1:
                 # Remove the last component to go up one level
                 path_parts.pop()  # Remove the last component
@@ -65,10 +62,8 @@ def index():
                     current_path = '/'
                 elif current_path != '/':
                     current_path += '/'
-                print(f"[NAVIGATION DEBUG] New path after going up: {current_path}")
             else:
                 current_path = root_path
-                print(f"[NAVIGATION DEBUG] Going to root: {current_path}")
 
     # If a folder is clicked, update the path
     clicked_folder = request.form.get('clicked_folder')
@@ -77,7 +72,6 @@ def index():
         current_path = '/' + clicked_folder.lstrip('/')
         if not current_path.endswith('/'):
             current_path += '/'
-        print(f"[NAVIGATION] Clicked folder: {current_path}")
 
     # Populate dropdowns
     catalogs = list_catalogs()
@@ -103,7 +97,6 @@ def index():
             if not f.get('is_dir') and f['path'].lower().endswith(('.png', '.jpg', '.jpeg', '.png', '.gif', '.bmp')):
                 content = get_file_content_cached(f['path'])
                 if content:
-                    print(f"[THUMBNAIL DEBUG] type(content): {type(content)}, first 20 bytes: {content[:20]}")
                     if isinstance(content, str):
                         content = content.encode('utf-8')
                     f['preview'] = get_image_thumbnail(content, size=(48, 48), cache_key=f['path'])
@@ -133,8 +126,6 @@ def index():
 
     # Handle file upload
     if request.method == 'POST':
-        print(f"[UPLOAD DEBUG] request.files: {request.files}")
-        print(f"[UPLOAD DEBUG] request.form: {request.form}")
         if 'upload_file' in request.files:
             upload_file = request.files['upload_file']
             upload_path = request.form.get('upload_path', '/')
@@ -146,9 +137,7 @@ def index():
                 volume_full_name = f"{selected_catalog}.{selected_schema}.{selected_volume}"
                 dest_path = upload_path.rstrip('/') + '/' + upload_file.filename
                 file_bytes = upload_file.read()
-                print(f"[UPLOAD] Uploading to: {volume_full_name}, dest_path: {dest_path}, bytes: {len(file_bytes)}")
                 success = upload_file_to_volume(volume_full_name, dest_path, file_bytes)
-                print(f"[UPLOAD] Upload success: {success}")
                 if not success:
                     flash('Upload failed!', 'error')
                 else:
@@ -240,18 +229,13 @@ def delete_file():
     file_path = request.form.get('file_path')
     is_directory = request.form.get('is_directory') == 'true'
     
-    print(f"[DELETE] Received request - file_path: {file_path}, is_directory: {is_directory}")
-    
     if not file_path:
-        print("[DELETE] Error: No file path provided")
         return jsonify({'error': 'No file path provided'}), 400
     
     success = delete_file_from_volume(file_path, is_directory)
     if success:
-        print(f"[DELETE] Successfully deleted {'directory' if is_directory else 'file'}: {file_path}")
         return jsonify({'message': f"{'Directory' if is_directory else 'File'} deleted successfully"})
     else:
-        print(f"[DELETE] Failed to delete {'directory' if is_directory else 'file'}: {file_path}")
         return jsonify({'error': f"Failed to delete {'directory' if is_directory else 'file'}"}), 500
 
 @app.route('/api/create-folder', methods=['POST'])

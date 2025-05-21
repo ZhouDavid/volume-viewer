@@ -391,7 +391,7 @@
                                 {{ current_path == root_path and "Root" or current_path }}
                             </label>
                             <div style="display: flex; gap: 8px;">
-                                <button type="button" onclick="document.getElementById('upload_file').click();" class="action-btn" title="Upload">
+                                <button type="button" onclick="prepareUploadAndOpenFilePicker()" class="action-btn" title="Upload">
                                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                       <line x1="12" y1="19" x2="12" y2="5"/>
                                       <polyline points="5 12 12 5 19 12"/>
@@ -488,6 +488,10 @@
     </div>
 
     <script>
+      function updateUploadPathInput(newPath) {
+        document.querySelector('#upload-form input[name="upload_path"]').value = newPath;
+      }
+
       document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.selector-input-card select').forEach(function(select) {
           new SlimSelect({
@@ -518,6 +522,16 @@
             e.preventDefault();
             createFolder();
           }
+        });
+
+        // Sync upload path on load
+        var currentPath = document.querySelector('input[name="current_path"]').value;
+        updateUploadPathInput(currentPath);
+
+        // Always update upload_path to latest current_path before file picker opens
+        document.getElementById('upload_file').addEventListener('click', function() {
+          var currentPath = document.querySelector('input[name="current_path"]').value;
+          updateUploadPathInput(currentPath);
         });
       });
       
@@ -590,7 +604,6 @@
             window.history.pushState({}, '', url);
           })
           .catch(error => {
-            console.error('Error fetching file preview:', error);
             document.getElementById('preview-content').innerHTML = '<div style="color: red;">Error loading file preview</div>';
           });
       }
@@ -679,6 +692,7 @@
             const newCurrentPathInput = tempDiv.querySelector('input[name="current_path"]');
             if (currentPathInput && newCurrentPathInput) {
               currentPathInput.value = newCurrentPathInput.value;
+              updateUploadPathInput(newCurrentPathInput.value);
             }
             
             // Update URL without reloading
@@ -695,7 +709,6 @@
           }
         })
         .catch(error => {
-          console.error('Error navigating to folder:', error);
           cardsContainer.innerHTML = '<div style="text-align: center; margin: 40px 0; color: red;">Error loading folder contents</div>';
         });
       }
@@ -754,7 +767,6 @@
           }
         })
         .catch(error => {
-          console.error('Error deleting:', error);
           const flashBanner = document.getElementById('flash-banner');
           if (flashBanner) {
             flashBanner.innerHTML = `
@@ -809,9 +821,14 @@
           }
         })
         .catch(error => {
-          console.error('Error creating folder:', error);
           alert(error.message);
         });
+      }
+
+      function prepareUploadAndOpenFilePicker() {
+        var currentPath = document.querySelector('input[name="current_path"]').value;
+        updateUploadPathInput(currentPath);
+        document.getElementById('upload_file').click();
       }
     </script>
 </body>
