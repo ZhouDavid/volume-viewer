@@ -17,6 +17,7 @@ _schemas_cache = TTLCache(ttl_seconds=60)
 _volumes_cache = TTLCache(ttl_seconds=60)
 _image_thumbnail_cache = TTLCache(ttl_seconds=300)
 _file_content_cache = TTLCache(ttl_seconds=300)
+raise Exception("test")
 
 def list_volumes(catalog_name: str, schema_name: str, limit: int = 20) -> List[Dict]:
     """
